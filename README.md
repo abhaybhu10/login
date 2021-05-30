@@ -5,4 +5,6 @@ User it for learning docker and rest api in go.
 Inteded for beginer only.
 
 ### Setup.
-Just git pull and ```docker-compose build``` and ```docker compose up```
+clone the repo and run following command in sequence
+ * ```docker-compose build``` 
+ *  ```docker-compose up```
