@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -45,16 +44,29 @@ func (r *SessionRedis) Get(ctx context.Context, key string) (*model.Session, err
 }
 
 func GetSessionRedis() *SessionRedis {
-	URL := os.Getenv("REDIS_URL")
+	HOST, ok := os.LookupEnv("REDIS_HOST")
+	if !ok {
+		fmt.Println("REDIS_HOST not set")
+	}
+	PORT := os.Getenv("REDIS_PORT")
+	url := fmt.Sprintf("%s:%s", HOST, PORT)
 	rdb := redis.NewClient(&redis.Options{
-		Addr:         URL,
+		Addr:         url,
 		Password:     "",
 		DB:           0, // use default DB
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
-		TLSConfig:    &tls.Config{},
 	})
+	pong, err := rdb.Ping(context.Background()).Result()
+
+	if err != nil {
+		fmt.Printf("Error while connecting to Redis URL: %s, error: %s\n", url, err.Error())
+	}
+
+	fmt.Printf("Redis ping response %s\n", pong)
+
 	return &SessionRedis{
-		client: rdb,
+		client:  rdb,
+		timeout: 20 * time.Second,
 	}
 }

@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,6 +24,7 @@ func (r *UserRedis) Save(ctx context.Context, user model.User) error {
 		fmt.Errorf("Error while marshaling")
 	}
 	err = r.client.Set(ctx, user.ID, data, r.timeout).Err()
+	fmt.Printf("User %v saved to redis\n", user)
 	return err
 }
 
@@ -46,16 +46,26 @@ func (r *UserRedis) Get(ctx context.Context, key string) (*model.User, error) {
 
 func GetUserRedis() *UserRedis {
 
-	URL := os.Getenv("REDIS_URL")
+	HOST := os.Getenv("REDIS_HOST")
+	PORT := os.Getenv("REDIS_PORT")
+	url := fmt.Sprintf("%s:%s", HOST, PORT)
 	rdb := redis.NewClient(&redis.Options{
-		Addr:         URL,
+		Addr:         url,
 		Password:     "",
 		DB:           1,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
-		TLSConfig:    &tls.Config{},
 	})
+	pong, err := rdb.Ping(context.Background()).Result()
+
+	if err != nil {
+		fmt.Printf("Error while connecting to Redis URL: %s, error: %s\n", url, err.Error())
+	}
+
+	fmt.Printf("Redis ping response %s\n", pong)
+
 	return &UserRedis{
-		client: rdb,
+		client:  rdb,
+		timeout: 20 * time.Second,
 	}
 }

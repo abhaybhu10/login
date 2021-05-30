@@ -91,7 +91,7 @@ func GetMySql() *Mysql {
 	dbName, isPresent := os.LookupEnv("DB_NAME")
 	dbUrl, isPresent := os.LookupEnv("DB_URL")
 
-	conn := fmt.Sprintf("%s:%s@%s/%s", userName, password, dbUrl, dbName)
+	conn := fmt.Sprintf("%s:%s@%s/%s?parseTime=true", userName, password, dbUrl, dbName)
 	fmt.Printf("Connecting to mysql %s\n", conn)
 
 	db, err := gorm.Open(mysql.Open(conn), &gorm.Config{})

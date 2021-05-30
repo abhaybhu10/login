@@ -47,12 +47,12 @@ func GetUserStore() User {
 func (u *UserStore) Save(user model.User) error {
 	ctx := context.Background()
 	if err := u.cache.Save(ctx, user); err != nil {
-		fmt.Printf("cache put failed")
+		fmt.Printf("cache put failed %s\n", err.Error())
 	}
 
 	err := u.db.SaveUser(user)
 	if err != nil {
-		fmt.Printf("Error while saving to database")
+		fmt.Printf("Error while saving to database %s\n", err.Error())
 	}
 	return err
 }
@@ -60,12 +60,12 @@ func (u *UserStore) Save(user model.User) error {
 func (s *SessionStore) Save(session model.Session) error {
 	ctx := context.Background()
 	if err := s.cache.Save(ctx, session); err != nil {
-		fmt.Printf("cache put failed")
+		fmt.Printf("cache put failed %s", err.Error())
 	}
 
 	err := s.db.SaveSession(session)
 	if err != nil {
-		fmt.Printf("Error while saving to database")
+		fmt.Printf("Error while saving to database %s\n", err.Error())
 	}
 	return err
 }
