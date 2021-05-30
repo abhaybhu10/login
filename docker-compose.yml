@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    command: /bin/app
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DB_NAME=login
+      - DB_URL=tcp(db:3306)
+      - USERNAME=root
+      - PASSWORD=password
+      - REDIS_URL=redis:6379
+  db:
+    image: mysql:latest
+    command: --init-file /data/application/init.sql
+    restart: always
+    volumes: 
+      - dbdata:/var/lib/mysql
+      - ./init.sql:/data/application/init.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_DATABASE: 'login'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password' 
+    ports: 
+       - "3306:3306"
+  redis:
+    image: "redis:alpine"
+    restart: always
+volumes:
+  dbdata:
