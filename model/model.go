@@ -11,3 +11,8 @@ type Session struct {
 	UserId    string
 	SessionID string
 }
+
+type Login struct {
+	Username string
+	Password string
+}

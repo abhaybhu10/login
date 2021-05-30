@@ -19,18 +19,13 @@ type HTTPServer struct {
 	userStore    persistence.User
 }
 
-type login struct {
-	Username string
-	Password string
-}
-
 func (server *HTTPServer) loginHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	var loginData login
+	var loginData model.Login
 	if err = json.Unmarshal(body, &loginData); err != nil {
 		fmt.Printf("error while parsing json %v\n", err.Error())
 	}
