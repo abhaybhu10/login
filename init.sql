@@ -11,11 +11,12 @@ CREATE TABLE IF NOT EXISTS `users` (
   `deleted_at` datetime(3) NULL,
   PRIMARY KEY(`id`)
 );
+
 CREATE TABLE IF NOT EXISTS `sessions` (
-  `session_id` VARCHAR(255),
+  `id` VARCHAR(255),
   `user_id` VARCHAR(255) NOT NULL,
   `created_at` datetime(3) NULL,
   `updated_at` datetime(3) NULL,
   `deleted_at` datetime(3) NULL,
-  PRIMARY KEY(`session_id`)
+  PRIMARY KEY(`id`)
 )

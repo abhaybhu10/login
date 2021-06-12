@@ -46,7 +46,7 @@ func GetUserStore() User {
 
 func (u *UserStore) Save(user model.User) error {
 	ctx := context.Background()
-	if err := u.cache.Save(ctx, user.ID, user); err != nil {
+	if err := u.cache.Save(ctx, user.ID, model.User{}); err != nil {
 		fmt.Printf("cache put failed %s\n", err.Error())
 	}
 
@@ -59,8 +59,8 @@ func (u *UserStore) Save(user model.User) error {
 
 func (s *SessionStore) Save(session model.Session) error {
 	ctx := context.Background()
-	if err := s.cache.Save(ctx, session.SessionID, session); err != nil {
-		fmt.Printf("cache put failed %s", err.Error())
+	if err := s.cache.Save(ctx, session.ID, model.Session{}); err != nil {
+		fmt.Printf("cache put failed %s\n", err.Error())
 	}
 
 	err := s.db.SaveSession(session)
@@ -72,19 +72,20 @@ func (s *SessionStore) Save(session model.Session) error {
 
 func (s *SessionStore) Get(key string) (*model.Session, error) {
 	ctx := context.Background()
-	value, err := s.cache.Get(ctx, key, model.User{})
+	value, err := s.cache.Get(ctx, key, model.Session{})
 
 	if err == nil {
-		fmt.Printf("Key %s found in cache", key)
+		fmt.Printf("Key %s found in cache\n", key)
 		session := value.(model.Session)
 		return &session, nil
 	}
-	fmt.Printf("Session %s not found in cache", key)
+	fmt.Printf("Session %s not found in cache\n", key)
 
 	session, err := s.db.GetSession(key)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Session %s not found", key))
 	}
+	s.cache.Save(ctx, key, model.Session{})
 	return session, nil
 
 }
@@ -98,8 +99,13 @@ func (u *UserStore) Get(userID string) (*model.User, error) {
 		user := value.(model.User)
 		return &user, nil
 	}
-	fmt.Printf("User %s not found in cache", userID)
+	fmt.Printf("User %s not found in cache\n", userID)
 
 	user, err := u.db.GetUser(userID)
+	if err != nil {
+		fmt.Printf("error %s while query database for user %s", err.Error(), userID)
+		return nil, errors.New(fmt.Sprintf("user %s not found", userID))
+	}
+	fmt.Printf("user %s found in database %v \n", userID, user)
 	return user, err
 }

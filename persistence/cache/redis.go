@@ -51,11 +51,13 @@ func (r *RedisClient) Save(ctx context.Context, key string, value interface{}) e
 	}
 
 	namespacedKey := getNamespacedKey(key, value)
+	fmt.Printf("Saving data in cache %s\n", namespacedKey)
 	return r.client.Set(ctx, namespacedKey, p, r.timeout).Err()
 }
 
 func (r *RedisClient) Get(ctx context.Context, key string, dest interface{}) (interface{}, error) {
 	namespacedKey := getNamespacedKey(key, dest)
+	fmt.Printf("Query cache for %s\n", namespacedKey)
 	p, err := r.client.Get(ctx, namespacedKey).Result()
 	if err == redis.Nil {
 		return nil, errors.New(fmt.Sprintf("Key %s does not exist\n", namespacedKey))
@@ -67,9 +69,11 @@ func (r *RedisClient) Get(ctx context.Context, key string, dest interface{}) (in
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("key %s found cache value %v", key, p)
 	return dest, err
 }
 
 func getNamespacedKey(key string, dest interface{}) string {
-	return fmt.Sprintf("%s_%s", key, fmt.Sprintf("%T", dest))
+	return key
+	//return fmt.Sprintf("%s_%s", key, fmt.Sprintf("%T", dest))
 }

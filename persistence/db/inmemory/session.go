@@ -17,7 +17,7 @@ func NewInMomorySession() *InMemorySession {
 }
 
 func (s *InMemorySession) Save(session model.Session) error {
-	s.sessions[session.SessionID] = session
+	s.sessions[session.ID] = session
 	return nil
 }
 

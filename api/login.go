@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,7 +14,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// this is a comment
 type HTTPServer struct {
 	sessionStore persistence.Session
 	userStore    persistence.User
@@ -33,24 +33,29 @@ func (server *HTTPServer) loginHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := server.userStore.Get(loginData.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, fmt.Sprintf("user %s does not exist", loginData.Username))
+		fmt.Fprintf(w, fmt.Sprintf("user %s does not exist\n", loginData.Username))
+		fmt.Printf("login failed with error: %s\n", err.Error())
 		return
 	}
 	if user.Password != loginData.Password {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, fmt.Sprintf("wrong credential for %s user", loginData.Username))
+		fmt.Printf("invalid password for user %s \n", loginData.Username)
 		return
 	}
 
 	w.WriteHeader(http.StatusAccepted)
 	session := model.Session{
-		UserId:    loginData.Username,
-		SessionID: uuid.NewString(),
+		UserId: loginData.Username,
+		ID:     uuid.NewString(),
 	}
 
-	server.sessionStore.Save(session)
-	fmt.Fprintf(w, fmt.Sprintf("user logined %s, session %s", loginData.Username, session.SessionID))
-	w.Header().Add("sessionID", session.SessionID)
+	if err := server.sessionStore.Save(session); err != nil {
+		fmt.Printf(err.Error())
+	}
+	fmt.Fprintf(w, fmt.Sprintf("user logined %s, session %s", loginData.Username, session.ID))
+	fmt.Printf("login successfull for user %s\n", loginData.Username)
+	w.Header().Add("sessionID", session.ID)
 }
 
 func (server *HTTPServer) signupHandler(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +82,7 @@ func (server *HTTPServer) Setup() {
 	r := mux.NewRouter()
 	r.HandleFunc("/login", server.loginHandler)
 	r.HandleFunc("/signup", server.signupHandler).Methods(http.MethodPost)
-	r.HandleFunc("/index", server.indexHandler).Methods(http.MethodGet)
+	r.HandleFunc("/index", server.withLogin(server.indexHandler)).Methods(http.MethodGet)
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
@@ -86,4 +91,21 @@ func NewHttpServer() *HTTPServer {
 		userStore:    persistence.GetUserStore(),
 		sessionStore: persistence.GetSessionStore(),
 	}
+}
+
+func (server *HTTPServer) withLogin(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionID := r.Header.Get("session")
+		session, err := server.sessionStore.Get(sessionID)
+		if sessionID == "" || err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "invalid session")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "userid", session.UserId)
+
+		fmt.Printf("logined with session %v\n", session)
+		next(w, r.WithContext(ctx))
+	})
 }

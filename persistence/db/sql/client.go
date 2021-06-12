@@ -20,8 +20,8 @@ type User struct {
 
 type Session struct {
 	gorm.Model
-	SessionID string `gorm:"primaryKey"`
-	UserID    string `gorm:"index"`
+	ID     string `gorm:"primaryKey"`
+	UserID string `gorm:"index"`
 }
 
 type Mysql struct {
@@ -46,7 +46,7 @@ func (m *Mysql) SaveUser(user model.User) error {
 
 func (m *Mysql) GetUser(userId string) (*model.User, error) {
 	var user User
-	if result := m.db.Find(&user); result.Error != nil {
+	if result := m.db.Where(&User{ID: userId}).First(&user); result.Error != nil {
 		return nil, result.Error
 	}
 
@@ -61,8 +61,8 @@ func (m *Mysql) GetUser(userId string) (*model.User, error) {
 
 func (m *Mysql) SaveSession(session model.Session) error {
 	sessionData := &Session{
-		SessionID: session.SessionID,
-		UserID:    session.UserId,
+		ID:     session.ID,
+		UserID: session.UserId,
 	}
 	result := m.db.Create(sessionData)
 
@@ -72,12 +72,12 @@ func (m *Mysql) SaveSession(session model.Session) error {
 func (m *Mysql) GetSession(Id string) (*model.Session, error) {
 	var session Session
 
-	if result := m.db.Find(&session); result.Error != nil {
+	if result := m.db.Where(&Session{ID: Id}).First(&session); result.Error != nil {
 		return nil, result.Error
 	}
 	return &model.Session{
-		SessionID: session.SessionID,
-		UserId:    session.UserID,
+		ID:     session.ID,
+		UserId: session.UserID,
 	}, nil
 }
 

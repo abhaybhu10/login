@@ -9,14 +9,13 @@ import (
 )
 
 type EnsureAuth struct {
-	handler   http.Handler
-	sessionDB persistence.Session
+	SessionDB persistence.Session
 }
 
-func (ea *EnsureAuth) validate(next http.Handler) http.Handler {
+func (ea *EnsureAuth) Validate(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionID := r.Header.Get("session")
-		session, err := ea.sessionDB.Get(sessionID)
+		session, err := ea.SessionDB.Get(sessionID)
 		if sessionID == "" || err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprint(w, "invalid session")
@@ -26,6 +25,6 @@ func (ea *EnsureAuth) validate(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), "userid", session.UserId)
 
 		fmt.Printf("logined with session %v", session)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next(w, r.WithContext(ctx))
 	})
 }

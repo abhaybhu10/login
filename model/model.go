@@ -8,8 +8,8 @@ type User struct {
 }
 
 type Session struct {
-	UserId    string
-	SessionID string
+	UserId string
+	ID     string
 }
 
 type Login struct {
