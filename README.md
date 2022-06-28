@@ -1,8 +1,8 @@
 # login
 
 Sample go rest application.
-User it for learning docker and rest api in go.
-Inteded for beginer only.
+Use it for learning docker and rest api in go.
+Inteded for beginner only.
 
 ### Setup.
 clone the repo and run following command in sequence
